@@ -1,43 +1,34 @@
 #!/usr/bin/env python3
 
 
-class Event:
-    id: int
-    category: str
-    name: str
-    status: str
-    is_active: str
-    race_id: str
-    racedate_desc: str
-    reg_url: str
-    start_date: str
+from peewee import *
 
-    def __init__(self, *args, **kwargs):
-        self.id = kwargs["id"]
-        self.category = kwargs["category"]
-        self.name = kwargs["event_name"]
-        self.status = kwargs["event_status"]
-        self.is_active = kwargs["is_active"]
-        self.race_id = kwargs["race_id"]
-        self.racedate_desc = kwargs["racedate_desc"]
-        self.reg_url = kwargs["reg_url"]
-        self.start_date = kwargs["start_date"]
-
-    def __str__(self):
-        return f"Event({self.id}, {self.name}, {self.status})"
+db = SqliteDatabase("races.db")
 
 
-class Race:
-    id: int
-    name: str
-    venue: str
-    start_date: str
+class Race(Model):
+    spartan_id = IntegerField()
+    name = CharField()
+    start_date = DateField()
 
-    def __init__(self, *args, **kwargs):
-        self.id = int(kwargs["id"])
-        self.name = kwargs["event_name"]
-        self.start_date = kwargs["start_date"]
-        self.subevents = [Event(**e) for e in kwargs["subevents"]]
+    class Meta:
+        database = db
 
-    def __str__(self):
-        return f"Race({self.id}, {self.name}, {self.start_date})"
+
+class Event(Model):
+    spartan_id = IntegerField()
+    # parent_race = ForeignKeyField(Race, backref='events')
+    category = CharField()
+    name = CharField()
+    race_id = IntegerField()
+    start_date = DateField()
+    venue_name = CharField()
+
+    class Meta:
+        database = db
+
+
+if __name__ == "__main__":
+    db.connect()
+    db.create_tables([Event, Race])
+    db.close()

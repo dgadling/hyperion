@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+from datetime import datetime
 import logging
 import os
 
@@ -9,7 +10,7 @@ import requests
 
 from typing import Dict
 
-from models import Race
+from models import Race, Event
 
 
 def _load(file_name: str):
@@ -83,11 +84,26 @@ def main():
 
     info = fetch_raw_race_info(persist=True, file_name="race_info.json")
 
-    for raw_race in info:
-        r = Race(**raw_race)
-        logging.info(r)
-        for event in r.subevents:
-            logging.info(f"  {event}")
+    for r in info:
+        race = Race(spartan_id=r['id'], name=r['event_name'],
+                    start_date=datetime.strptime(
+             r['start_date'], '%Y-%m-%d'
+        ))
+        race.save()
+        logging.info(f"Saved {race.name}, adding specific events")
+
+        for e in r['subevents']:
+            event = Event(
+                spartan_id=e['id'],
+                # race=race,
+                category=e['category']['category_identifier'],
+                name=e['event_name'],
+                race_id=e['race_id'],
+                start_date=datetime.strptime(e['start_date'], '%Y-%m-%d'),
+                venue_name=e['venue']['name'],
+            )
+            logging.info(f"  - {event.name}")
+            event.save()
 
 
 if __name__ == "__main__":
