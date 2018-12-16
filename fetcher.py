@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+
+import json
+import logging
+import os
+
+import requests
+
+
+from typing import Dict
+
+from models import Race
+
+
+def _load(file_name: str):
+    if not os.path.exists(file_name):
+        logging.info(f"Asked to use persisted info but didn't find it")
+        raise FileNotFoundError()
+
+    logging.info(f"Asked to use persisted stuff and found {file_name}!")
+    with open(file_name) as in_f:
+        return json.load(in_f)
+
+
+def _save(file_name: str, info):
+    try:
+        with open(file_name, "w") as out_f:
+            json.dump(info, out_f)
+        logging.info(f"Persisted to {file_name}")
+    except OSError:
+        logging.exception(f"Couldn't persist to {file_name} but continuing")
+
+
+def fetch_raw_race_info(persist: bool = False, file_name: str = None) -> Dict:
+    """
+    Will fetch race info from spartan.com, unless file_name already exists, in which
+    case that will be used. Any issues with that file will cause us to simply
+    re-fetch from the internet.
+    :param: persist: Should we try to load/save from some path?
+    :param: file_name: If we should try to load/save, from where?
+    :return: A dict of races and such
+    """
+    if persist:
+        try:
+            return _load(file_name)
+        except Exception:
+            logging.exception(f"Well that didn't work, fetching!")
+
+    headers = {
+        "referrer": "https://www.spartan.com/en/race/find-race",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        " (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
+    }
+
+    r = requests.get("https://www.spartan.com/en/race/find-race", headers=headers)
+    raw_lines = r.text.splitlines()
+
+    for line in raw_lines:
+        l = line.strip()
+        if not l.startswith("window.races"):
+            continue
+
+        race_list = l[14:-1]  # 'window.races = ' to the ; at the end
+        info = json.loads(race_list)
+        break
+    else:
+        raise Exception("Couldn't find race list!")
+
+    if persist:
+        _save(file_name, info)
+    return info
+
+
+def main():
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(module)s: %(message)s",
+        level=logging.INFO,
+    )
+
+    logging.getLogger("chardet").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+    info = fetch_raw_race_info(persist=True, file_name="race_info.json")
+
+    for raw_race in info:
+        r = Race(**raw_race)
+        logging.info(r)
+        for event in r.subevents:
+            logging.info(f"  {event}")
+
+
+if __name__ == "__main__":
+    main()
