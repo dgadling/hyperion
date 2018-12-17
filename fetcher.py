@@ -82,28 +82,44 @@ def main():
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-    info = fetch_raw_race_info(persist=True, file_name="race_info.json")
+    logging.info("Fetching data from Spartan")
+    info = fetch_raw_race_info(persist=False, file_name="race_info.json")
+    logging.info("Time to compare what we found!")
 
     for r in info:
-        race = Race(spartan_id=r['id'], name=r['event_name'],
-                    start_date=datetime.strptime(
-             r['start_date'], '%Y-%m-%d'
-        ))
-        race.save()
-        logging.info(f"Saved {race.name}, adding specific events")
+        curr_race = Race(
+            spartan_id=r["id"],
+            name=r["event_name"],
+            start_date=datetime.strptime(r["start_date"], "%Y-%m-%d").date(),
+        )
+        try:
+            old_race = Race.get(spartan_id=r["id"])
+            diff = old_race.diff(curr_race)
+            if diff:
+                logging.info(diff)
+        except Race.DoesNotExist:
+            curr_race.save()
+            logging.info(f"Saved {curr_race.name}, adding specific events")
 
-        for e in r['subevents']:
-            event = Event(
-                spartan_id=e['id'],
+        for e in r["subevents"]:
+            curr_event = Event(
+                spartan_id=e["id"],
                 # race=race,
-                category=e['category']['category_identifier'],
-                name=e['event_name'],
-                race_id=e['race_id'],
-                start_date=datetime.strptime(e['start_date'], '%Y-%m-%d'),
-                venue_name=e['venue']['name'],
+                category=e["category"]["category_identifier"],
+                name=e["event_name"],
+                race_id=e["race_id"],
+                start_date=datetime.strptime(e["start_date"], "%Y-%m-%d"),
+                venue_name=e["venue"]["name"],
             )
-            logging.info(f"  - {event.name}")
-            event.save()
+            try:
+                old_event = Event.get(spartan_id=e["id"])
+                diff = old_event.diff(curr_event)
+                if diff:
+                    logging.info(diff)
+            except Event.DoesNotExist:
+                curr_event.save()
+                logging.info(f"Saved {curr_event.name}!")
+    logging.info("Done!")
 
 
 if __name__ == "__main__":

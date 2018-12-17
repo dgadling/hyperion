@@ -7,5 +7,5 @@ setup(
     author_email="dave@toasterwaffles.com",
     description="Watches Spartan for new races / race changes",
     license="MIT",
-    install_requires=["requests"]
+    install_requires=["requests", "peewee"]
 )

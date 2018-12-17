@@ -6,16 +6,31 @@ from peewee import *
 db = SqliteDatabase("races.db")
 
 
-class Race(Model):
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+    def diff(self, other):
+        assert self.__class__ == other.__class__, "Not even the same class?!"
+        diffs = []
+        for k, v in self._meta.fields.items():
+            if k == "id":
+                continue
+
+            us = getattr(self, k)
+            them = self._meta.fields[k].python_value(getattr(other, k))
+            if us != them:
+                diffs.append(f"{getattr(self, k)} -> {getattr(other, k)}")
+        return ", ".join(diffs)
+
+
+class Race(BaseModel):
     spartan_id = IntegerField()
     name = CharField()
     start_date = DateField()
 
-    class Meta:
-        database = db
 
-
-class Event(Model):
+class Event(BaseModel):
     spartan_id = IntegerField()
     # parent_race = ForeignKeyField(Race, backref='events')
     category = CharField()
@@ -23,9 +38,6 @@ class Event(Model):
     race_id = IntegerField()
     start_date = DateField()
     venue_name = CharField()
-
-    class Meta:
-        database = db
 
 
 if __name__ == "__main__":
