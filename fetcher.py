@@ -97,6 +97,8 @@ def main():
             diff = old_race.diff(curr_race)
             if diff:
                 logging.info(diff)
+                curr_race.id = old_race.id
+                curr_race.save()
         except Race.DoesNotExist:
             curr_race.save()
             logging.info(f"Saved {curr_race.name}, adding specific events")
@@ -116,6 +118,8 @@ def main():
                 diff = old_event.diff(curr_event)
                 if diff:
                     logging.info(diff)
+                    curr_event.id = old_event.id
+                    curr_event.save()
             except Event.DoesNotExist:
                 curr_event.save()
                 logging.info(f"Saved {curr_event.name}!")
