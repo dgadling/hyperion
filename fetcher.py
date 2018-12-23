@@ -101,8 +101,10 @@ def main():
                 curr_race.save()
         except Race.DoesNotExist:
             curr_race.save()
-            logging.info(f"Saved {curr_race.name} ({curr_race.spartan_id}), "
-                         "adding specific events")
+            logging.info(
+                f"Saved {curr_race.name} ({curr_race.spartan_id}), "
+                "adding specific events"
+            )
 
         for e in r["subevents"]:
             curr_event = Event(
