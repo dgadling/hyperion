@@ -82,9 +82,9 @@ def main():
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-    logging.info("Fetching data from Spartan")
+    logging.debug("Fetching data from Spartan")
     info = fetch_raw_race_info(persist=False, file_name="race_info.json")
-    logging.info("Time to compare what we found!")
+    logging.debug("Time to compare what we found!")
 
     for r in info:
         curr_race = Race(
@@ -126,7 +126,7 @@ def main():
             except Event.DoesNotExist:
                 curr_event.save()
                 logging.info(f"Saved {curr_event.name}!")
-    logging.info("Done!")
+    logging.debug("Done!")
 
 
 if __name__ == "__main__":
