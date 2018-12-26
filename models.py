@@ -20,7 +20,10 @@ class BaseModel(Model):
             us = getattr(self, k)
             them = self._meta.fields[k].python_value(getattr(other, k))
             if us != them:
-                diffs.append(f"{getattr(self, k)} -> {getattr(other, k)}")
+                diffs.append(
+                    f"{self.__class__.__name__}(spartan_id={self.spartan_id})"
+                    f".{k}: {getattr(self, k)} -> {getattr(other, k)}"
+                )
         return ", ".join(diffs)
 
 
