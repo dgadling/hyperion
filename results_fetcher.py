@@ -451,7 +451,7 @@ def main():
     filename_format = "{year}-{venue}-{day}-{time}-{heat}.csv"
 
     for race_info in races:
-        filename = filename_format.format(**race_info)
+        filename = os.path.join("race-results", filename_format.format(**race_info))
         if os.path.exists(filename):
             logging.info(f"{filename} exists, skipping!")
             continue
