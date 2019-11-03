@@ -25,6 +25,7 @@ def get_ids(low=2900, high=46713):
 
 def put_ids(ids):
     with open(STATE_FILE, "wb+") as state_f:
+        logging.info(f"Save {len(ids)} ids to check in the future")
         pickle.dump(ids, state_f)
 
 
@@ -41,34 +42,38 @@ def main():
     processed = 0
     while ids:
         try:
-            event_id = ids.pop()
-            url = REQ_TMP.format(event_id=event_id)
-            response = SESSION.get(url)
-            processed += 1
+            try:
+                event_id = ids.pop()
+                url = REQ_TMP.format(event_id=event_id)
+                response = SESSION.get(url)
+                processed += 1
 
-            if response.status_code != 200:
-                logging.debug(f"Got a {response.status_code}, not 200 for {event_id}")
-                continue
+                if response.status_code != 200:
+                    logging.debug(f"Got a {response.status_code}, not 200 for {event_id}")
+                    continue
 
-            if "spartan" not in response.text.lower():
-                logging.debug(f"Didn't see 'spartan' in the response for {event_id}")
-                continue
+                if "spartan" not in response.text.lower():
+                    logging.debug(f"Didn't see 'spartan' in the response for {event_id}")
+                    continue
 
-            logging.info(f"Candidate: {url}")
-            save_winner(event_id)
+                logging.info(f"Candidate: {url}")
+                save_winner(event_id)
+            except Exception:
+                logging.exception(f"Putting {event_id} at the end of the list")
+                ids.append(event_id)
+            finally:
+                event_id = None
+                to_sleep = random.uniform(0.03, 3.09)
+                logging.debug(f"Snoozing for {to_sleep}s")
+                time.sleep(to_sleep)
         except KeyboardInterrupt:
-            logging.info(f"Saving {event_id} as unknown and exiting")
-            ids.append(event_id)
+            if event_id:
+                logging.info(f"Saving {event_id} as unknown and exiting")
+                ids.append(event_id)
             put_ids(ids)
             break
-        except Exception:
-            logging.exception(f"Putting {event_id} at the end of the list")
-            ids.append(event_id)
-        finally:
-            to_sleep = random.uniform(0.03, 3.09)
-            logging.debug(f"Snoozing for {to_sleep}s")
-            time.sleep(to_sleep)
-    logging.info("RAN OUT OF IDS! WOOO!")
+    if not ids:
+        logging.info("RAN OUT OF IDS! WOOO!")
 
 
 if __name__ == "__main__":
