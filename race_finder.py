@@ -30,7 +30,7 @@ def put_ids(ids):
 
 
 def save_winner(event_id):
-    with open("winners.txt", "a+", newline='') as out_f:
+    with open("winners.txt", "a+", newline="") as out_f:
         out_f.write(f"{event_id}\n")
 
 
@@ -49,11 +49,15 @@ def main():
                 processed += 1
 
                 if response.status_code != 200:
-                    logging.debug(f"Got a {response.status_code}, not 200 for {event_id}")
+                    logging.debug(
+                        f"Got a {response.status_code}, not 200 for {event_id}"
+                    )
                     continue
 
                 if "spartan" not in response.text.lower():
-                    logging.debug(f"Didn't see 'spartan' in the response for {event_id}")
+                    logging.debug(
+                        f"Didn't see 'spartan' in the response for {event_id}"
+                    )
                     continue
 
                 logging.info(f"Candidate: {url}")

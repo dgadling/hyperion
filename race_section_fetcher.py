@@ -12,53 +12,53 @@ LOAD_MODEL = "https://results.chronotrack.com/embed/results/load-model"
 
 
 def get_info(event_id: int):
-    raw = SESSION.get(
-        url=LOAD_MODEL,
-        params={
-            'modelID': 'event',
-            'eventID': event_id
-        }
-    )
+    raw = SESSION.get(url=LOAD_MODEL, params={"modelID": "event", "eventID": event_id})
     info = json.loads(raw.text[1:-2])
 
     results = {
         "event": event_id,
-        "name": info['model']['name'].split("-")[0].strip(),
+        "name": info["model"]["name"].split("-")[0].strip(),
         "races": [],
     }
 
     try:
-        event_time = datetime.strptime(info['model']['start_time'], "%b %d, %Y %I:%M%p")
+        event_time = datetime.strptime(info["model"]["start_time"], "%b %d, %Y %I:%M%p")
         results["year"] = event_time.year
         results["date"] = event_time.strftime("%Y-%m-%d")
     except ValueError:
         try:
-            event_time = datetime.strptime(info['model']['start_time'], "%d %b, %Y %I:%M%p")
+            event_time = datetime.strptime(
+                info["model"]["start_time"], "%d %b, %Y %I:%M%p"
+            )
             results["year"] = event_time.year
             results["date"] = event_time.strftime("%Y-%m-%d")
         except ValueError:
-            logging.exception(f"Bad date format ({info['model']['start_time']}), fall back")
-            results["year"] = info['model']['start_time']
-            results["date"] = info['model']['start_time']
+            logging.exception(
+                f"Bad date format ({info['model']['start_time']}), fall back"
+            )
+            results["year"] = info["model"]["start_time"]
+            results["date"] = info["model"]["start_time"]
 
-    if 'races' not in info['model'].keys():
+    if "races" not in info["model"].keys():
         return results
 
-    if not info['model']['races']:
+    if not info["model"]["races"]:
         return results
 
-    for race_id, race_info in info['model']['races'].items():
-        if " - " in race_info['name']:
-            heat = race_info['name'].split(' - ')[1].lower()
+    for race_id, race_info in info["model"]["races"].items():
+        if " - " in race_info["name"]:
+            heat = race_info["name"].split(" - ")[1].lower()
         else:
-            heat = race_info['name']
+            heat = race_info["name"]
 
-        results['races'].append({
-            "event_id": event_id,
-            "race_id": int(race_id),
-            "bracket_id": int(race_info['default_bracket_id']),
-            "heat": heat,
-        })
+        results["races"].append(
+            {
+                "event_id": event_id,
+                "race_id": int(race_id),
+                "bracket_id": int(race_info["default_bracket_id"]),
+                "heat": heat,
+            }
+        )
 
     return results
 

@@ -47,7 +47,9 @@ class RacerResult(NamedTuple):
             a * b for a, b in zip([3600, 60, 1], map(int, raw_input[4].split(":")))
         )
         try:
-            return RacerResult(*[field_types[i](raw_input[i]) for i in range(field_count)])
+            return RacerResult(
+                *[field_types[i](raw_input[i]) for i in range(field_count)]
+            )
         except ValueError:
             logging.exception(f"With input ->{raw_input}<-")
             raise
