@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+from datetime import date
 from peewee import *
 
 db = SqliteDatabase("races.db")
@@ -39,7 +40,7 @@ class Event(BaseModel):
     category = CharField()
     name = CharField()
     race_id = IntegerField()
-    start_date = DateField()
+    start_date = DateField(date.today())
     venue_name = CharField()
 
 
