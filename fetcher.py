@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-from datetime import datetime
+from datetime import date, datetime
 import logging
 import os
 
@@ -107,13 +107,18 @@ def main():
             )
 
         for e in r["subevents"]:
+            if "start_date" in e:
+                start_date = datetime.strptime(e["start_date"], "%Y-%m-%d")
+            else:
+                start_date = date.today()
+
             curr_event = Event(
                 spartan_id=e["id"],
                 # race=race,
                 category=e["category"]["category_identifier"],
                 name=e["event_name"],
                 race_id=e["race_id"],
-                start_date=datetime.strptime(e["start_date"], "%Y-%m-%d"),
+                start_date=start_date,
                 venue_name=e["venue"]["name"],
             )
             try:
