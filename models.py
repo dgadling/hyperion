@@ -40,7 +40,7 @@ class Event(BaseModel):
     category = CharField()
     name = CharField()
     race_id = IntegerField()
-    start_date = DateField(date.today())
+    start_date = DateField(default=date.today())
     venue_name = CharField()
 
 
