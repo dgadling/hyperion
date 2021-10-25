@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-import json
 from datetime import date, datetime
 import logging
+import json
 import os
+from typing import List
 
 import requests
-
-
-from typing import Dict
 
 from models import Race, Event
 
@@ -32,14 +30,14 @@ def _save(file_name: str, info):
         logging.exception(f"Couldn't persist to {file_name} but continuing")
 
 
-def fetch_raw_race_info(persist: bool = False, file_name: str = None) -> Dict:
+def fetch_raw_race_info(persist: bool = False, file_name: str = None) -> List:
     """
     Will fetch race info from spartan.com, unless file_name already exists, in which
     case that will be used. Any issues with that file will cause us to simply
     re-fetch from the internet.
     :param: persist: Should we try to load/save from some path?
     :param: file_name: If we should try to load/save, from where?
-    :return: A dict of races and such
+    :return: A list of dicts of races
     """
     if persist:
         try:
@@ -53,19 +51,20 @@ def fetch_raw_race_info(persist: bool = False, file_name: str = None) -> Dict:
         " (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
     }
 
-    r = requests.get("https://www.spartan.com/en/race/find-race", headers=headers)
-    raw_lines = r.text.splitlines()
+    r = requests.get(
+        "https://api2.spartan.com/api/races/upcoming_past_planned",
+        params={
+            "new_api": "yes",
+            "plimit": 0,
+            "ulimit": 500,
+            "prlimit": 0,
+            "units": "miles",
+            "radius": 1000,
+        },
+        headers=headers,
+    )
 
-    for line in raw_lines:
-        l = line.strip()
-        if not l.startswith("window.races"):
-            continue
-
-        race_list = l[14:-1]  # 'window.races = ' to the ; at the end
-        info = json.loads(race_list)
-        break
-    else:
-        raise Exception("Couldn't find race list!")
+    info = json.loads(r.text)["upcoming"]
 
     if persist:
         _save(file_name, info)
@@ -86,14 +85,16 @@ def main():
     info = fetch_raw_race_info(persist=False, file_name="race_info.json")
     logging.debug("Time to compare what we found!")
 
-    for r in info:
+    for overall_event in info:
         curr_race = Race(
-            spartan_id=r["id"],
-            name=r["event_name"],
-            start_date=datetime.strptime(r["start_date"], "%Y-%m-%d").date(),
+            spartan_id=overall_event["id"],
+            name=overall_event["name"],
+            start_date=datetime.strptime(
+                overall_event["start_date"], "%Y-%m-%d"
+            ).date(),
         )
         try:
-            old_race = Race.get(spartan_id=r["id"])
+            old_race = Race.get(spartan_id=overall_event["id"])
             diff = old_race.diff(curr_race)
             if diff:
                 logging.info(diff)
@@ -106,7 +107,7 @@ def main():
                 "adding specific events"
             )
 
-        for e in r["subevents"]:
+        for e in overall_event["events"]:
             if "start_date" in e:
                 start_date = datetime.strptime(e["start_date"], "%Y-%m-%d")
             else:
@@ -116,10 +117,10 @@ def main():
                 spartan_id=e["id"],
                 # race=race,
                 category=e["category"]["category_identifier"],
-                name=e["event_name"],
+                name=e["name"],
                 race_id=e["race_id"],
                 start_date=start_date,
-                venue_name=e["venue"]["name"],
+                venue_name=overall_event["venue"]["name"],
             )
             try:
                 old_event = Event.get(spartan_id=e["id"])
