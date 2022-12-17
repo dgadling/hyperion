@@ -74,7 +74,7 @@ def fetch_raw_race_info(persist: bool = False, file_name: str = None) -> List:
 def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(module)s: %(message)s",
-        level=logging.INFO,
+        level=logging.ERROR,
     )
 
     logging.getLogger("chardet").setLevel(logging.WARNING)
@@ -113,15 +113,23 @@ def main():
             else:
                 start_date = date.today()
 
-            curr_event = Event(
-                spartan_id=e["id"],
-                # race=race,
-                category=e["category"]["category_identifier"],
-                name=e["name"],
-                race_id=e["race_id"],
-                start_date=start_date,
-                venue_name=overall_event["venue"]["name"],
-            )
+            # Fix up some poor quality data from Spartan
+            try:
+                curr_event = Event(
+                    spartan_id=e["id"],
+                    # race=race,
+                    category=e["category"]["category_identifier"],
+                    name=e["name"],
+                    race_id=e["race_id"],
+                    start_date=start_date,
+                    venue_name=overall_event["venue"]["name"],
+                )
+            except KeyError as ke:
+                # Item #1 overall_event["venue"]["name"] is missing - id 20 = Red deer
+                # Item #2 category_identifier missing for HH24HR
+                logging.exception(f"{ke}: event = {e} ; overall_event = {overall_event}")
+                continue
+
             try:
                 old_event = Event.get(spartan_id=e["id"])
                 diff = old_event.diff(curr_event)
