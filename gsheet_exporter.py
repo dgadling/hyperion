@@ -109,9 +109,9 @@ class EventRow:
             race_name = race_name.replace(fragment, "")
 
         # Some events have their types mashed/together/like/so
-        race_name = re.sub(r" (\w+\/)+\w+ ", "", race_name)
+        race_name = re.sub(r" (\w+/)+\w+ ", "", race_name)
         # Some throw the dates in
-        race_name = re.sub(r"[a-zA-Z]+ \d+\-\d+", "", race_name)
+        race_name = re.sub(r"[a-zA-Z]+ \d+-\d+", "", race_name)
         # Remove duplicated words!
         race_name = re.sub(r"\b(\w+)( +\1\b)+", r"\1", race_name)
 
@@ -255,9 +255,6 @@ def get_event_rows(starting_on_or_after: date) -> List[EventRow]:
     `Event` objects.
 
     These are combined into `EventRow` objects.
-
-    :param starting_on_or_after:
-    :return:
     """
     races = (
         Race.select()
