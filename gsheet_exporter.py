@@ -38,6 +38,8 @@ class EventRow:
         "charitychallenge",
         "spartancombo",
         "teams",
+        "3K",
+        "3K Elite Series",
     }
 
     NAME_FRAGMENTS_TO_DELETE = [

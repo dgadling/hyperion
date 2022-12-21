@@ -48,7 +48,7 @@ def fetch_raw_race_info(persist: bool = False, file_name: str = None) -> List:
     headers = {
         "referrer": "https://www.spartan.com/en/race/find-race",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-                      " (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
+        " (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
     }
 
     r = requests.get(
@@ -122,10 +122,15 @@ def main():
 
             # Fix up some poor quality data from Spartan
             try:
+                category_key = (
+                    "category_identifier"
+                    if "category_identifier" in e["category"]
+                    else "category_name"
+                )
                 curr_event = Event(
                     spartan_id=e["id"],
                     # race=race,
-                    category=e["category"]["category_identifier"],
+                    category=e["category"][category_key],
                     name=e["name"],
                     race_id=e["race_id"],
                     start_date=start_date,
