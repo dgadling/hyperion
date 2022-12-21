@@ -3,7 +3,7 @@
 import itertools
 import os.path
 import re
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import List
 
 from google.auth.transport.requests import Request
@@ -73,7 +73,7 @@ class EventRow:
     ]
 
     def __init__(
-            self, race: Race, events: List[Event], normalize_race_name=False
+        self, race: Race, events: List[Event], normalize_race_name=False
     ) -> None:
         self.start_date = race.start_date
         self.name = race.name
@@ -96,8 +96,7 @@ class EventRow:
             k
             for k in self.__dict__.keys()
             if k.startswith("__") is False
-               and k not in ["name", "start_date", "venue_name", "event_id",
-                             "event_link"]
+            and k not in ["name", "start_date", "venue_name", "event_id", "event_link"]
         )
         attr_strs = [f"{attr}={getattr(self, attr)}" for attr in sorted(attrs)]
         return (
@@ -325,20 +324,54 @@ def set_race_info(creds, sheet_id, events: List[EventRow]) -> None:
         print(f"An error occurred: {error}")
 
 
+def set_metadata(creds, sheet_id) -> None:
+    """
+    Sets the metadata for the update
+    """
+    try:
+        service = build("sheets", "v4", credentials=creds)
+        range_name = f"P1"
+        body = {
+            "values": [
+                [
+                    "Last updated "
+                    + datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+                ]
+            ]
+        }
+        (
+            service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=sheet_id,
+                range=range_name,
+                valueInputOption="USER_ENTERED",
+                body=body,
+            )
+            .execute()
+        )
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+
+
 def update_sheet(creds, sheet_id, events: List[EventRow]) -> None:
     print("Setting location info")
     set_location_info(creds, sheet_id, events)
     print("Race specific info")
     set_race_info(creds, sheet_id, events)
+    set_metadata(creds, sheet_id)
 
 
 def main():
     event_rows = get_event_rows(starting_on_or_after=date(2023, 1, 1))
     print(f"Found {len(event_rows)} events")
 
-    update_sheet(
-        handle_creds(), "15Tx_2Kqyg2Ir_HIkLPlzibfA9PmA_lkiazRLmPxMRiU", event_rows
-    )
+    # My personal sheet
+    # sheet_id = "15Tx_2Kqyg2Ir_HIkLPlzibfA9PmA_lkiazRLmPxMRiU"
+
+    # The one I shared in Spartan 4-0
+    sheet_id = "1BN_z_2eO0GtMrbL-mzUzwhxxLkQVuPYKM-QYt6LY3Xg"
+    update_sheet(handle_creds(), sheet_id, event_rows)
 
 
 if __name__ == "__main__":
