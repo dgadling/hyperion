@@ -19,6 +19,7 @@ class EventRow:
     EVENT_CATEGORY_REPLACEMENTS = {
         "hurricane-heat": "hh_4",
         "spartanhh12hr": "hh_12",
+        "HH24HR": "hh_24",
         "spartansprint": "sprint",
         "spartansuper": "super",
         "spartanbeast": "beast",
@@ -150,6 +151,7 @@ class EventRow:
         "city",
         "hh_4",
         "hh_12",
+        "hh_24",
         "trail_10k",
         "trail_21k",
         "trail_50k",
@@ -289,7 +291,7 @@ def set_location_info(creds, sheet_id, events: List[EventRow]) -> None:
             )
             .execute()
         )
-        range_name = f"P4:R{len(events) + 3}"
+        range_name = f"Q4:S{len(events) + 3}"
         body = {"values": [event_row.country_region_row() for event_row in events]}
         (
             service.spreadsheets()
@@ -331,7 +333,7 @@ def set_metadata(creds, sheet_id) -> None:
     """
     try:
         service = build("sheets", "v4", credentials=creds)
-        range_name = f"P1"
+        range_name = f"Q1"
         body = {
             "values": [
                 [
