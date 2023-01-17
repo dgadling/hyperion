@@ -41,6 +41,7 @@ class EventRow:
         "teams",
         "3K",
         "3K Elite Series",
+        "Trail 5K",
         "Trail 7K",
     }
 
