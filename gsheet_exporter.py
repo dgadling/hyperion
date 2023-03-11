@@ -43,6 +43,7 @@ class EventRow:
         "3K Elite Series",
         "Trail 5K",
         "Trail 7K",
+        "vip-upgrades",
     }
 
     NAME_FRAGMENTS_TO_DELETE = [
