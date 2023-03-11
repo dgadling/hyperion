@@ -94,7 +94,7 @@ def main():
             start_date=datetime.strptime(
                 overall_event["start_date"], "%Y-%m-%d"
             ).date(),
-            venue_name=venue_info["name"],
+            venue_name=venue_info.get("name", "TBD"),
             country=venue_info.get("country", "TBD"),
             region=venue_info.get("region", "TBD"),
             latitude=float(venue_info.get("latitude", "0.0")),
@@ -134,7 +134,7 @@ def main():
                     name=e["name"],
                     race_id=e["race_id"],
                     start_date=start_date,
-                    venue_name=venue_info["name"],
+                    venue_name=venue_info.get("name", "TBD"),
                 )
             except KeyError as ke:
                 # Item #1 overall_event["venue"]["name"] is missing - id 20 = Red deer
