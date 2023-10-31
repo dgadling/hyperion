@@ -45,6 +45,7 @@ class EventRow:
         "Trail 7K",
         "vip-upgrades",
         "Bundle",
+        "boot_camp",
     }
 
     NAME_FRAGMENTS_TO_DELETE = [
