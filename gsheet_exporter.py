@@ -46,6 +46,8 @@ class EventRow:
         "vip-upgrades",
         "Bundle",
         "boot_camp",
+        "Kids Trail",
+        "Trail 50M",
     }
 
     NAME_FRAGMENTS_TO_DELETE = [
