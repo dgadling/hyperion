@@ -48,6 +48,7 @@ class EventRow:
         "boot_camp",
         "Kids Trail",
         "Trail 50M",
+        "para",
     }
 
     NAME_FRAGMENTS_TO_DELETE = [
