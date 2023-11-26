@@ -50,6 +50,7 @@ class EventRow:
         "Trail 50M",
         "para",
         "sponsorship",
+        "OCRWC",
     }
 
     NAME_FRAGMENTS_TO_DELETE = [
